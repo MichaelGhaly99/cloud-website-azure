@@ -1,22 +1,26 @@
 # Studien-Website auf Azure (Infrastructure as Code)
 
-Dieses Terraform-Projekt stellt eine statische Website auf Microsoft Azure bereit. Der Inhalt liegt in einem Storage Account mit aktivierter Funktion "statische Website" und wird über HTTPS ausgeliefert. Die gesamte Infrastruktur wird als Code beschrieben und lässt sich reproduzierbar aufbauen und wieder entfernen.
+Dieses Terraform-Projekt stellt eine statische Website auf Microsoft Azure bereit. Der Inhalt liegt in einem Storage Account mit aktivierter Funktion "statische Website" und wird über HTTPS ausgeliefert. Die Infrastruktur ist als wiederverwendbares Modul beschrieben und lässt sich reproduzierbar aufbauen und wieder entfernen.
 
-Portfolio Phase 2, Kurs Cloud Programming.
+Portfolio Phase 3, Kurs Cloud Programming.
+
+## Projektstruktur
+
+- `main.tf`, `variables.tf`, `outputs.tf`, `providers.tf`: Wurzelkonfiguration. Sie legt die Ressourcengruppe an und ruft das Modul auf.
+- `modules/static_website/`: Modul mit Storage Account (statische Website), den hochgeladenen Seiten und dem Key Vault. Es erhält seine Werte ausschließlich über Variablen (`resource_group_name`, `location`, `website_path`, `tags`) und bleibt dadurch wiederverwendbar.
+- `website/`: die statischen Seiten `index.html` und `404.html`.
 
 ## Architektur
 
-- Azure Storage Account mit aktivierter Funktion "statische Website" (liefert index.html und 404.html).
-- Azure Key Vault verwaltet Geheimnisse (hier der Zugriffsschlüssel des Storage Accounts) getrennt vom Code.
+- Azure Storage Account mit aktivierter Funktion "statische Website".
+- Azure Key Vault verwaltet Geheimnisse (Zugriffsschlüssel des Storage Accounts) getrennt vom Code.
 - Zusammengefasst in einer Ressourcengruppe.
 
-Geplant ist zusätzlich Azure Front Door als globaler Einstiegspunkt (Zwischenspeicher weltweit, HTTPS und Web Application Firewall). Auf einem Azure-for-Students-Konto lässt sich Front Door nicht anlegen, daher ist dieser Dienst hier nicht im Deployment enthalten. Auf einem kostenpflichtigen Konto würde Front Door unverändert vor den Storage Account gesetzt.
+Geplant ist zusätzlich Azure Front Door als globaler Einstiegspunkt. Auf einem Azure-for-Students-Konto lässt sich Front Door nicht anlegen, daher ist dieser Dienst hier nicht enthalten. Auf einem kostenpflichtigen Konto ließe er sich als weiteres Modul vor den Storage Account setzen.
 
 ## Voraussetzungen
 
-- Ein Azure-Konto (zum Beispiel Azure for Students).
-- Azure CLI installiert.
-- Terraform ab Version 1.5.
+- Ein Azure-Konto (zum Beispiel Azure for Students), die Azure CLI und Terraform ab Version 1.5.
 
 ## Bereitstellung
 
@@ -27,10 +31,7 @@ terraform plan
 terraform apply
 ```
 
-Nach dem Anlegen werden folgende Werte ausgegeben:
-
-- website_url: die öffentliche Adresse der statischen Website.
-- resource_group: der Name der erstellten Ressourcengruppe.
+Nach dem Anlegen gibt `website_url` die Adresse der Website aus und `resource_group` den Namen der Ressourcengruppe.
 
 ## Abbau
 
@@ -38,10 +39,8 @@ Nach dem Anlegen werden folgende Werte ausgegeben:
 terraform destroy
 ```
 
-Damit werden alle erstellten Ressourcen wieder entfernt, sodass keine laufenden Kosten entstehen.
-
 ## Sicherheit
 
-- Öffentlicher Zugriff auf einzelne Blobs ist deaktiviert (allow_nested_items_to_be_public = false).
+- Öffentlicher Zugriff auf einzelne Blobs ist deaktiviert (`allow_nested_items_to_be_public = false`).
 - Es wird ausschließlich Transport Layer Security ab Version 1.2 zugelassen.
-- Der Zugriffsschlüssel des Storage Accounts wird im Key Vault gespeichert und nicht im Code oder in den Ausgaben offengelegt.
+- Der Zugriffsschlüssel des Storage Accounts liegt im Key Vault, nicht im Code oder in den Ausgaben.

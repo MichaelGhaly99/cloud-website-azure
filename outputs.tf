@@ -1,6 +1,6 @@
 output "website_url" {
-  description = "Öffentliche Adresse der statischen Website (Storage Account)."
-  value       = azurerm_storage_account.web.primary_web_endpoint
+  description = "Öffentliche Adresse der statischen Website."
+  value       = module.static_website.website_url
 }
 
 output "resource_group" {
